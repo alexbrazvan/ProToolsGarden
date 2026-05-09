@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { User, Mail, Phone, MapPin, CreditCard, Package, Settings, LogOut } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 const accountSections = [
   {

@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { LucideIcon } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 interface CategoryCardProps {
   name: string;

@@ -4,7 +4,7 @@ import { ProductCard } from '../components/ProductCard';
 
 const wishlistItems = [
   {
-    id: 1,
+    id: "1",
     name: 'Professional Cordless Drill 20V Max',
     price: 129.99,
     originalPrice: 179.99,
@@ -15,7 +15,7 @@ const wishlistItems = [
     inStock: true
   },
   {
-    id: 6,
+    id: "6",
     name: 'Rotary Hammer Drill SDS-Plus',
     price: 279.99,
     originalPrice: 349.99,
@@ -26,7 +26,7 @@ const wishlistItems = [
     inStock: true
   },
   {
-    id: 8,
+    id: "8",
     name: 'Excavator Mini Compact',
     price: 12499.99,
     image: 'https://images.unsplash.com/photo-1772430364048-87343eea8fae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
@@ -35,7 +35,7 @@ const wishlistItems = [
     inStock: false
   },
   {
-    id: 20,
+    id: "20",
     name: 'Lawn Mower Self-Propelled 21"',
     price: 449.99,
     originalPrice: 549.99,
@@ -46,7 +46,7 @@ const wishlistItems = [
     inStock: true
   },
   {
-    id: 34,
+    id: "34",
     name: 'Tile Saw 10" Professional',
     price: 429.99,
     originalPrice: 529.99,
@@ -57,7 +57,7 @@ const wishlistItems = [
     inStock: true
   },
   {
-    id: 40,
+    id: "40",
     name: 'Drill Bit Set Titanium 100-Piece',
     price: 59.99,
     originalPrice: 79.99,

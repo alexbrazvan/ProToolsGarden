@@ -1,11 +1,11 @@
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { Star, ShoppingCart } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useCart } from '../context/CartContext';
 import { useState } from 'react';
 
 interface ProductCardProps {
-  id: number;
+  id: string;
   name: string;
   price: number;
   originalPrice?: number;

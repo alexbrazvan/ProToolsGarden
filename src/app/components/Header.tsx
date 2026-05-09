@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { Search, User, Heart, ShoppingCart, Menu } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { motion, useScroll, useTransform } from 'motion/react';

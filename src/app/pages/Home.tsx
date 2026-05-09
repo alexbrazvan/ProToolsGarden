@@ -1,110 +1,57 @@
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Link } from 'react-router';
-import { Drill, Shovel, HardHat, Wrench, Truck, Shield, RotateCcw, CreditCard } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  Drill,
+  Shovel,
+  HardHat,
+  Wrench,
+  Truck,
+  Shield,
+  RotateCcw,
+  CreditCard
+} from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { CategoryCard } from '../components/CategoryCard';
+import { supabase } from '../lib/supabase';
 
-const featuredProducts = [
-  {
-    id: 1,
-    name: 'Professional Cordless Drill 20V Max',
-    price: 129.99,
-    originalPrice: 179.99,
-    image: 'https://images.unsplash.com/photo-1770763233593-74dfd0da7bf0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.8,
-    reviews: 324,
-    discount: 28
-  },
-  {
-    id: 2,
-    name: 'Heavy Duty Angle Grinder with Case',
-    price: 89.99,
-    originalPrice: 119.99,
-    image: 'https://images.unsplash.com/photo-1518709414768-a88981a4515d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.6,
-    reviews: 198,
-    discount: 25
-  },
-  {
-    id: 3,
-    name: 'Impact Driver Kit with Battery',
-    price: 159.99,
-    image: 'https://images.unsplash.com/photo-1598726935360-7a5e2464e22d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.9,
-    reviews: 412
-  },
-  {
-    id: 4,
-    name: 'Professional Tool Set 180 Pieces',
-    price: 249.99,
-    originalPrice: 299.99,
-    image: 'https://images.unsplash.com/photo-1546827209-a218e99fdbe9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.7,
-    reviews: 267,
-    discount: 17
-  },
-  {
-    id: 5,
-    name: 'Circular Saw with Laser Guide',
-    price: 199.99,
-    image: 'https://images.unsplash.com/photo-1603138519910-9a3813cc0ca6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.8,
-    reviews: 156
-  },
-  {
-    id: 6,
-    name: 'Rotary Hammer Drill SDS-Plus',
-    price: 279.99,
-    originalPrice: 349.99,
-    image: 'https://images.unsplash.com/photo-1689935421853-cb23a0bc92e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.9,
-    reviews: 289,
-    discount: 20
-  },
-  {
-    id: 7,
-    name: 'Garden Pruning Shears Premium',
-    price: 34.99,
-    image: 'https://images.unsplash.com/photo-1774647001686-314f877fb9c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.5,
-    reviews: 143
-  },
-  {
-    id: 8,
-    name: 'Excavator Mini Compact',
-    price: 12499.99,
-    image: 'https://images.unsplash.com/photo-1772430364048-87343eea8fae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.8,
-    reviews: 45
-  }
-];
+type ProductImage = {
+  id: string;
+  image_url: string;
+  alt_text: string | null;
+  sort_order: number;
+};
 
-const categories = [
-  {
-    name: 'Power Tools',
-    icon: Drill,
-    image: 'https://images.unsplash.com/photo-1770763233593-74dfd0da7bf0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600',
-    path: '/power-tools'
-  },
-  {
-    name: 'Garden Tools',
-    icon: Shovel,
-    image: 'https://images.unsplash.com/photo-1763844597656-eddb0836065f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600',
-    path: '/garden-tools'
-  },
-  {
-    name: 'Construction Equipment',
-    icon: HardHat,
-    image: 'https://images.unsplash.com/photo-1759745125627-333e78bc1edc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600',
-    path: '/construction-equipment'
-  },
-  {
-    name: 'Accessories',
-    icon: Wrench,
-    image: 'https://images.unsplash.com/photo-1774963711952-713bb7a52c4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600',
-    path: '/accessories'
-  }
-];
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  sort_order: number;
+};
+
+type Product = {
+  id: string;
+  name: string;
+  slug: string;
+  short_description: string | null;
+  price_cents: number;
+  compare_at_price_cents: number | null;
+  rating: number;
+  review_count: number;
+  is_featured: boolean;
+  product_images: ProductImage[];
+  categories: Category | null;
+};
+
+const fallbackProductImage =
+  'https://images.unsplash.com/photo-1546827209-a218e99fdbe9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800';
+
+const fallbackCategoryImage =
+  'https://images.unsplash.com/photo-1774963711952-713bb7a52c4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600';
+
+const categoryIcons = [Drill, Shovel, HardHat, Wrench];
 
 const benefits = [
   {
@@ -130,15 +77,110 @@ const benefits = [
 ];
 
 export function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  useEffect(() => {
+    async function loadHomeData() {
+      const [productsResponse, categoriesResponse] = await Promise.all([
+        supabase
+          .from('products')
+          .select(`
+            *,
+            categories (
+              id,
+              name,
+              slug,
+              description,
+              image_url,
+              sort_order
+            ),
+            product_images (
+              id,
+              image_url,
+              alt_text,
+              sort_order
+            )
+          `)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(8),
+
+        supabase
+          .from('categories')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true })
+          .limit(4)
+      ]);
+
+      if (!productsResponse.error && productsResponse.data) {
+        setProducts(productsResponse.data as Product[]);
+      }
+
+      if (!categoriesResponse.error && categoriesResponse.data) {
+        setCategories(categoriesResponse.data as Category[]);
+      }
+
+      setLoadingProducts(false);
+      setLoadingCategories(false);
+    }
+
+    loadHomeData();
+  }, []);
+
+  const mappedProducts = useMemo(() => {
+    return products.map((product) => {
+      const sortedImages = [...(product.product_images || [])].sort(
+        (a, b) => a.sort_order - b.sort_order
+      );
+
+      const mainImage = sortedImages[0]?.image_url || fallbackProductImage;
+
+      const price = product.price_cents / 100;
+
+      const originalPrice = product.compare_at_price_cents
+        ? product.compare_at_price_cents / 100
+        : undefined;
+
+      const discount =
+        originalPrice && originalPrice > price
+          ? Math.round(((originalPrice - price) / originalPrice) * 100)
+          : undefined;
+
+      return {
+        id: product.id,
+        name: product.name,
+        price,
+        originalPrice,
+        image: mainImage,
+        rating: Number(product.rating || 0),
+        reviews: product.review_count || 0,
+        discount
+      };
+    });
+  }, [products]);
+
+  const mappedCategories = useMemo(() => {
+    return categories.map((category, index) => ({
+      name: category.name,
+      icon: categoryIcons[index] || Wrench,
+      image: category.image_url || fallbackCategoryImage,
+      path: `/${category.slug}`
+    }));
+  }, [categories]);
+
   return (
     <div>
-      {/* Hero Section */}
       <section className="relative bg-primary text-primary-foreground overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/95 to-transparent z-10" />
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1766096847418-9a2ae64c9621?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920)'
+            backgroundImage:
+              'url(https://images.unsplash.com/photo-1766096847418-9a2ae64c9621?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920)'
           }}
         />
 
@@ -152,9 +194,11 @@ export function Home() {
               <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
                 Professional Tools<br />for Every Project
               </h1>
+
               <p className="text-xl md:text-2xl mb-8 opacity-90">
                 Power, precision, and reliability for professionals and DIY enthusiasts
               </p>
+
               <div className="flex flex-wrap gap-4">
                 <Link to="/power-tools">
                   <motion.button
@@ -165,6 +209,7 @@ export function Home() {
                     Shop Now
                   </motion.button>
                 </Link>
+
                 <Link to="/promotions">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -180,7 +225,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* Categories Section */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-6 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -188,22 +232,30 @@ export function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-8">Shop by Category</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-8">
+            Shop by Category
+          </h2>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {categories.map((category, index) => (
-            <CategoryCard
-              key={category.name}
-              {...category}
-              delay={index * 0.1}
-            />
-          ))}
-        </div>
+        {loadingCategories ? (
+          <p className="text-muted-foreground">Loading categories...</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {mappedCategories.map((category, index) => (
+              <CategoryCard
+                key={category.name}
+                {...category}
+                delay={index * 0.1}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Featured Products */}
-      <section id="featured" className="max-w-[1400px] mx-auto px-4 sm:px-6 py-16 bg-secondary/30">
+      <section
+        id="featured"
+        className="max-w-[1400px] mx-auto px-4 sm:px-6 py-16 bg-secondary/30"
+      >
         <div className="max-w-[1400px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -212,23 +264,32 @@ export function Home() {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-2">Featured Products</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-2">
+              Featured Products
+            </h2>
             <p className="text-muted-foreground">Top picks for professionals</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product, index) => (
-              <ProductCard
-                key={product.id}
-                {...product}
-                delay={index * 0.05}
-              />
-            ))}
-          </div>
+          {loadingProducts ? (
+            <p className="text-muted-foreground">Loading products...</p>
+          ) : mappedProducts.length === 0 ? (
+            <p className="text-muted-foreground">
+              No products available yet.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {mappedProducts.map((product, index) => (
+                <ProductCard
+                  key={product.id}
+                  {...product}
+                  delay={index * 0.05}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Promotions Banner */}
       <section id="promotions" className="bg-accent text-accent-foreground py-16 mt-16">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
           <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -238,8 +299,14 @@ export function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl md:text-5xl font-bold mb-4">Spring Sale</h2>
-              <p className="text-xl mb-6">Up to 40% off power tools and accessories</p>
+              <h2 className="text-3xl md:text-5xl font-bold mb-4">
+                Spring Sale
+              </h2>
+
+              <p className="text-xl mb-6">
+                Up to 40% off power tools and accessories
+              </p>
+
               <Link to="/promotions">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -250,6 +317,7 @@ export function Home() {
                 </motion.button>
               </Link>
             </motion.div>
+
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -267,7 +335,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* Benefits Section */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {benefits.map((benefit, index) => (
@@ -282,8 +349,12 @@ export function Home() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-accent/10 text-accent rounded-full mb-4">
                 <benefit.icon size={32} />
               </div>
+
               <h3 className="font-bold text-lg mb-2">{benefit.title}</h3>
-              <p className="text-muted-foreground text-sm">{benefit.description}</p>
+
+              <p className="text-muted-foreground text-sm">
+                {benefit.description}
+              </p>
             </motion.div>
           ))}
         </div>
