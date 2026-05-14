@@ -1,259 +1,215 @@
-import { useParams, Link } from 'react-router';
-import { Star, ShoppingCart, Heart, Share2, ChevronRight, Truck, Shield, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { useCart } from '../context/CartContext';
-import { ProductCard } from '../components/ProductCard';
-
-const products = [
-  {
-    id: 1,
-    name: 'Professional Cordless Drill 20V Max',
-    price: 129.99,
-    originalPrice: 179.99,
-    images: [
-      'https://images.unsplash.com/photo-1770763233593-74dfd0da7bf0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-      'https://images.unsplash.com/photo-1598726935360-7a5e2464e22d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800'
-    ],
-    rating: 4.8,
-    reviews: 324,
-    discount: 28,
-    description: 'High-performance 20V Max cordless drill with brushless motor, 2-speed transmission, and LED work light. Includes 2 batteries, charger, and carrying case.',
-    specs: [
-      { label: 'Voltage', value: '20V Max' },
-      { label: 'Chuck Size', value: '1/2 inch' },
-      { label: 'Max Torque', value: '650 in-lbs' },
-      { label: 'Speed Range', value: '0-450/0-1,500 RPM' },
-      { label: 'Battery Type', value: 'Lithium-Ion' },
-      { label: 'Weight', value: '3.4 lbs' }
-    ],
-    inStock: true,
-    category: 'Power Tools'
-  }
-];
-
-const relatedProducts = [
-  {
-    id: 2,
-    name: 'Heavy Duty Angle Grinder with Case',
-    price: 89.99,
-    originalPrice: 119.99,
-    image: 'https://images.unsplash.com/photo-1518709414768-a88981a4515d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.6,
-    reviews: 198,
-    discount: 25
-  },
-  {
-    id: 3,
-    name: 'Impact Driver Kit with Battery',
-    price: 159.99,
-    image: 'https://images.unsplash.com/photo-1598726935360-7a5e2464e22d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.9,
-    reviews: 412
-  },
-  {
-    id: 4,
-    name: 'Professional Tool Set 180 Pieces',
-    price: 249.99,
-    originalPrice: 299.99,
-    image: 'https://images.unsplash.com/photo-1546827209-a218e99fdbe9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.7,
-    reviews: 267,
-    discount: 17
-  },
-  {
-    id: 5,
-    name: 'Circular Saw with Laser Guide',
-    price: 199.99,
-    image: 'https://images.unsplash.com/photo-1603138519910-9a3813cc0ca6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800',
-    rating: 4.8,
-    reviews: 156
-  }
-];
+import { ShoppingCart, Heart, ArrowLeft, Star, Package, ChevronRight, Minus, Plus } from 'lucide-react';
+import { useProduct } from '@/app/hooks/useProducts';
+import { formatPrice, getDiscount } from '@/app/services/products';
+import { useCart } from '@/app/context/CartContext';
+import { ProductCardSkeleton } from '@/app/components/ProductCard';
 
 export function ProductPage() {
-  const { id } = useParams();
-  const { addToCart } = useCart();
-  const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { product, loading, error } = useProduct(id);
+  const { addItem } = useCart() as any;
 
-  const product = products.find(p => p.id === Number(id)) || products[0];
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addToCart({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.images[0]
-      });
-    }
+    if (!product) return;
+    addItem?.({
+      id: product.id,
+      name: product.name,
+      price: product.price_cents / 100,
+      image: product.product_images?.[selectedImageIndex]?.image_url || '',
+      quantity,
+    });
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Breadcrumb */}
-      <div className="bg-secondary/30 py-4">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link to="/" className="hover:text-accent transition-colors">Home</Link>
-            <ChevronRight size={16} />
-            <a href="#" className="hover:text-accent transition-colors">{product.category}</a>
-            <ChevronRight size={16} />
-            <span className="text-foreground">{product.name}</span>
+  if (loading) {
+    return (
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-12">
+        <div className="grid md:grid-cols-2 gap-12">
+          <div className="aspect-square bg-secondary/30 rounded-2xl animate-pulse" />
+          <div className="space-y-4">
+            {Array.from({ length: 6 }).map((_, i) => <ProductCardSkeleton key={i} />)}
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Product Details */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-12">
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* Product Images */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="sticky top-24">
-              <div className="aspect-square bg-secondary rounded-lg overflow-hidden mb-4">
-                <img
-                  src={product.images[selectedImage]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="grid grid-cols-4 gap-4">
-                {product.images.map((image, index) => (
+  if (error || !product) {
+    return (
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-24 text-center">
+        <Package size={56} className="text-muted-foreground mx-auto mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Produsul nu a fost găsit</h2>
+        <p className="text-muted-foreground mb-6">Produsul pe care îl cauți nu există sau a fost retras.</p>
+        <button onClick={() => navigate(-1)} className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+          Înapoi
+        </button>
+      </div>
+    );
+  }
+
+  const discount = getDiscount(product);
+  const images = product.product_images || [];
+  const currentImage = images[selectedImageIndex]?.image_url || 'https://placehold.co/600x600?text=No+Image';
+
+  return (
+    <div className="min-h-screen">
+      {/* Breadcrumb */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link to="/" className="hover:text-foreground transition-colors">Acasă</Link>
+          <ChevronRight size={14} />
+          {product.categories && (
+            <>
+              <Link to={`/${product.categories.slug}`} className="hover:text-foreground transition-colors">
+                {product.categories.name}
+              </Link>
+              <ChevronRight size={14} />
+            </>
+          )}
+          <span className="text-foreground font-medium truncate max-w-[200px]">{product.name}</span>
+        </div>
+      </div>
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pb-16">
+        <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
+
+          {/* Images */}
+          <div className="space-y-4">
+            <motion.div
+              key={selectedImageIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="relative aspect-square rounded-2xl overflow-hidden bg-secondary/20 border border-border"
+            >
+              <img src={currentImage} alt={product.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/600x600?text=No+Image'; }} />
+              {discount && (
+                <span className="absolute top-4 left-4 bg-accent text-accent-foreground text-sm font-bold px-3 py-1 rounded-full">-{discount}%</span>
+              )}
+            </motion.div>
+
+            {images.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-1">
+                {images.map((img, i) => (
                   <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`aspect-square bg-secondary rounded-lg overflow-hidden border-2 transition-colors ${
-                      selectedImage === index ? 'border-accent' : 'border-transparent hover:border-border'
-                    }`}
+                    key={img.id}
+                    onClick={() => setSelectedImageIndex(i)}
+                    className={`w-20 h-20 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${i === selectedImageIndex ? 'border-accent' : 'border-border hover:border-muted-foreground'}`}
                   >
-                    <img src={image} alt={`${product.name} view ${index + 1}`} className="w-full h-full object-cover" />
+                    <img src={img.image_url} alt={img.alt_text || product.name} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
-            </div>
-          </motion.div>
+            )}
+          </div>
 
-          {/* Product Info */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">{product.name}</h1>
+          {/* Info */}
+          <div className="space-y-6">
+            {product.brand && <p className="text-sm text-muted-foreground uppercase tracking-widest font-medium">{product.brand}</p>}
 
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={20}
-                    className={i < Math.floor(product.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
-                  />
-                ))}
+            <h1 className="text-3xl font-bold text-foreground leading-snug">{product.name}</h1>
+
+            {/* Rating */}
+            {product.rating && (
+              <div className="flex items-center gap-2">
+                <div className="flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} size={16} className={i < Math.round(product.rating!) ? 'fill-yellow-400 text-yellow-400' : 'text-border'} />
+                  ))}
+                </div>
+                <span className="text-sm font-medium">{product.rating.toFixed(1)}</span>
+                {product.review_count && <span className="text-sm text-muted-foreground">({product.review_count} recenzii)</span>}
               </div>
-              <span className="text-sm text-muted-foreground">
-                {product.rating} ({product.reviews} reviews)
-              </span>
-            </div>
+            )}
 
-            <div className="flex items-baseline gap-4 mb-6">
-              <span className="text-4xl font-bold text-primary">${product.price.toFixed(2)}</span>
-              {product.originalPrice && (
-                <>
-                  <span className="text-2xl text-muted-foreground line-through">${product.originalPrice.toFixed(2)}</span>
-                  <span className="px-3 py-1 bg-accent text-accent-foreground rounded-full font-bold text-sm">
-                    Save {product.discount}%
-                  </span>
-                </>
+            {/* Price */}
+            <div className="flex items-end gap-3">
+              <span className="text-4xl font-bold text-primary">{formatPrice(product.price_cents, product.currency)}</span>
+              {product.compare_at_price_cents && product.compare_at_price_cents > product.price_cents && (
+                <span className="text-xl text-muted-foreground line-through mb-1">{formatPrice(product.compare_at_price_cents, product.currency)}</span>
               )}
             </div>
 
-            <div className="mb-6">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {product.inStock ? '✓ In Stock' : '✗ Out of Stock'}
+            {/* Short description */}
+            {product.short_description && (
+              <p className="text-muted-foreground leading-relaxed">{product.short_description}</p>
+            )}
+
+            {/* Stock */}
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${product.stock_quantity > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className="text-sm font-medium">
+                {product.stock_quantity > 0 ? `${product.stock_quantity} bucăți în stoc` : 'Stoc epuizat'}
               </span>
             </div>
 
-            <p className="text-muted-foreground mb-8 leading-relaxed">{product.description}</p>
-
-            <div className="flex items-center gap-4 mb-8">
-              <div className="flex items-center border border-border rounded-lg">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-4 py-3 hover:bg-secondary transition-colors"
-                >
-                  -
-                </button>
-                <span className="px-6 py-3 border-x border-border font-medium">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-4 py-3 hover:bg-secondary transition-colors"
-                >
-                  +
-                </button>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleAddToCart}
-                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground py-3 px-6 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors"
-              >
-                <ShoppingCart size={20} />
-                Add to Cart
-              </motion.button>
-
-              <button className="p-3 border border-border rounded-lg hover:bg-secondary transition-colors">
-                <Heart size={20} />
-              </button>
-              <button className="p-3 border border-border rounded-lg hover:bg-secondary transition-colors">
-                <Share2 size={20} />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 py-6 border-y border-border mb-8">
-              <div className="text-center">
-                <Truck className="mx-auto mb-2 text-accent" size={24} />
-                <p className="text-xs text-muted-foreground">Free Shipping</p>
-              </div>
-              <div className="text-center">
-                <Shield className="mx-auto mb-2 text-accent" size={24} />
-                <p className="text-xs text-muted-foreground">2 Year Warranty</p>
-              </div>
-              <div className="text-center">
-                <RotateCcw className="mx-auto mb-2 text-accent" size={24} />
-                <p className="text-xs text-muted-foreground">30 Day Returns</p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-bold text-lg mb-4">Specifications</h3>
-              <div className="space-y-3">
-                {product.specs.map((spec) => (
-                  <div key={spec.label} className="flex justify-between py-2 border-b border-border">
-                    <span className="text-muted-foreground">{spec.label}</span>
-                    <span className="font-medium">{spec.value}</span>
+            {/* Quantity + Cart */}
+            {product.stock_quantity > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium">Cantitate:</span>
+                  <div className="flex items-center border border-border rounded-lg overflow-hidden">
+                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-secondary transition-colors">
+                      <Minus size={16} />
+                    </button>
+                    <span className="px-4 py-2 font-medium min-w-[3rem] text-center">{quantity}</span>
+                    <button onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))} className="px-3 py-2 hover:bg-secondary transition-colors">
+                      <Plus size={16} />
+                    </button>
                   </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        </div>
+                </div>
 
-        {/* Related Products */}
-        <div className="mt-20">
-          <h2 className="text-3xl font-bold text-primary mb-8">Related Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {relatedProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
+                <div className="flex gap-3">
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleAddToCart}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all ${
+                      addedToCart ? 'bg-green-500 text-white' : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    }`}
+                  >
+                    <ShoppingCart size={20} />
+                    {addedToCart ? 'Adăugat în coș!' : 'Adaugă în coș'}
+                  </motion.button>
+                  <button className="p-3 border border-border rounded-xl hover:bg-secondary transition-colors">
+                    <Heart size={20} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* SKU */}
+            {product.sku && <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>}
+
+            {/* Specifications */}
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="border-t border-border pt-6">
+                <h3 className="font-bold text-lg mb-4">Specificații tehnice</h3>
+                <div className="space-y-2">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <div key={key} className="flex gap-4 py-2 border-b border-border/50">
+                      <span className="text-sm text-muted-foreground min-w-[140px] shrink-0">{key}</span>
+                      <span className="text-sm font-medium">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Full description */}
+            {product.description && (
+              <div className="border-t border-border pt-6">
+                <h3 className="font-bold text-lg mb-3">Descriere</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -11,17 +11,22 @@ import { Promotions } from "./pages/Promotions";
 import { Account } from "./pages/Account";
 import { Wishlist } from "./pages/Wishlist";
 import { Layout } from "./components/Layout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    Component: Layout,
+    element: (
+      <AuthProvider>
+        <Layout />
+      </AuthProvider>
+    ),
     children: [
       { index: true, Component: Home },
       { path: "product/:id", Component: ProductPage },
       { path: "cart", Component: Cart },
       { path: "login", Component: Login },
-      { path: "account", Component: Account },
       { path: "wishlist", Component: Wishlist },
       { path: "power-tools", Component: PowerTools },
       { path: "garden-tools", Component: GardenTools },
@@ -29,6 +34,12 @@ export const router = createBrowserRouter([
       { path: "accessories", Component: Accessories },
       { path: "promotions", Component: Promotions },
       { path: "*", Component: Home },
+      {
+        Component: ProtectedRoute,
+        children: [
+          { path: "account", Component: Account },
+        ],
+      },
     ],
   },
 ]);
