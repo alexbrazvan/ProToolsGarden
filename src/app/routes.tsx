@@ -13,15 +13,18 @@ import { Wishlist } from "./pages/Wishlist";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <AuthProvider>
-        <Layout />
-      </AuthProvider>
-    ),
+  <AuthProvider>
+    <CartProvider>    {/* ← învelește Layout cu CartProvider */}
+      <Layout />
+    </CartProvider>
+  </AuthProvider>
+),
     children: [
       { index: true, Component: Home },
       { path: "product/:id", Component: ProductPage },
