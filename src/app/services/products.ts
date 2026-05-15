@@ -128,3 +128,25 @@ export async function getCategories(): Promise<Category[]> {
   if (error) { console.error('[getCategories]', error.message); return []; }
   return data || [];
 }
+/** Produse cu reducere reală (compare_at_price_cents > price_cents) */
+export async function getPromotions(): Promise<Product[]> {
+  const { data, error } = await supabase
+    .from('products')
+    .select(`
+      *,
+      product_images (id, image_url, alt_text, sort_order),
+      categories (id, name, slug)
+    `)
+    .eq('is_active', true)
+    .not('compare_at_price_cents', 'is', null)
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error('[getPromotions]', error.message); return []; }
+
+  return (data || [])
+    .filter((p) => p.compare_at_price_cents > p.price_cents)
+    .map((p) => ({
+      ...p,
+      product_images: (p.product_images || []).sort((a: ProductImage, b: ProductImage) => a.sort_order - b.sort_order),
+    }));
+}

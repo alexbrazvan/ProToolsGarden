@@ -3,6 +3,7 @@ import { ShoppingCart, Heart, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import { type Product, formatPrice, getFirstImage, getDiscount } from '@/app/services/products';
 import { useCart } from '@/app/context/CartContext';
+import { WishlistButton } from '@/app/components/WishlistButton';
 
 interface ProductCardProps {
   product: Product;
@@ -25,23 +26,26 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     >
       {/* Image */}
       <Link to={`/product/${product.id}`} className="block relative overflow-hidden aspect-square bg-secondary/30">
-        <img
-          src={imageUrl}
-          alt={product.product_images?.[0]?.alt_text || product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=No+Image'; }}
-        />
-        {discount && (
-          <span className="absolute top-3 left-3 bg-accent text-accent-foreground text-xs font-bold px-2.5 py-1 rounded-full">
-            -{discount}%
-          </span>
-        )}
-        {product.stock_quantity === 0 && (
-          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-            <span className="bg-white border border-border text-sm font-medium px-4 py-2 rounded-full">Stoc epuizat</span>
-          </div>
-        )}
-      </Link>
+  <img
+    src={imageUrl}
+    alt={product.product_images?.[0]?.alt_text || product.name}
+    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+    onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=No+Image'; }}
+  />
+  <div className="absolute top-3 right-3">
+    <WishlistButton productId={product.id} />
+  </div>
+  {discount && (
+    <span className="absolute top-3 left-3 bg-accent text-accent-foreground text-xs font-bold px-2.5 py-1 rounded-full">
+      -{discount}%
+    </span>
+  )}
+  {product.stock_quantity === 0 && (
+    <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+      <span className="bg-white border border-border text-sm font-medium px-4 py-2 rounded-full">Stoc epuizat</span>
+    </div>
+  )}
+</Link>
 
       {/* Info */}
       <div className="p-4 flex flex-col flex-1">
