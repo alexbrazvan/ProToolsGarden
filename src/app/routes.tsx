@@ -14,6 +14,9 @@ import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { OrderSuccess } from "./pages/OrderSuccess";
+
+
 
 export const router = createBrowserRouter([
   {
@@ -37,6 +40,7 @@ export const router = createBrowserRouter([
       { path: "accessories", Component: Accessories },
       { path: "promotions", Component: Promotions },
       { path: "*", Component: Home },
+      { path: "order-success", Component: OrderSuccess },
       {
         Component: ProtectedRoute,
         children: [
