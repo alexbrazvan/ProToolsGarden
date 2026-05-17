@@ -30,6 +30,7 @@ export function Cart() {
       });
 
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Eroare la inițializarea plății.');
@@ -38,9 +39,10 @@ export function Cart() {
       // Redirect la Stripe Checkout
       window.location.href = data.url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'A apărut o eroare. Încearcă din nou.');
-      setIsLoading(false);
-    }
+  console.error('Checkout error:', err);
+  setError(err instanceof Error ? err.message : 'A apărut o eroare. Încearcă din nou.');
+  setIsLoading(false);
+}
   };
 
   if (items.length === 0) {

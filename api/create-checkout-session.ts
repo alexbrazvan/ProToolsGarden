@@ -42,9 +42,14 @@ export default async function handler(req: Request) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  console.error('Stripe error:', error);
+  return new Response(JSON.stringify({ 
+    error: error.message,
+    type: error.type,
+    code: error.code,
+  }), {
+    status: 500,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 }
