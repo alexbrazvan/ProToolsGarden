@@ -15,6 +15,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { OrderSuccess } from "./pages/OrderSuccess";
+import { SearchPage } from "./pages/SearchPage";
 
 
 
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: "promotions", Component: Promotions },
       { path: "*", Component: Home },
       { path: "order-success", Component: OrderSuccess },
+      { path: "search", Component: SearchPage },
       {
         Component: ProtectedRoute,
         children: [

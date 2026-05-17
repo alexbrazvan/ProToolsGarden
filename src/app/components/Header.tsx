@@ -4,6 +4,8 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { useState, useRef, useEffect } from 'react';
+import { SearchBar } from '@/app/components/SearchBar';
+
 
 const categories = [
   { name: 'Power Tools', path: '/power-tools' },
@@ -68,15 +70,8 @@ export function Header() {
 
           {/* ── Search ── */}
           <div className="flex-1 max-w-2xl hidden md:block">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-              <input
-                type="text"
-                placeholder="Search for tools, equipment, accessories..."
-                className="w-full h-12 pl-12 pr-4 rounded-lg border-2 border-border bg-input-background focus:border-primary focus:outline-none transition-colors"
-              />
-            </div>
-          </div>
+  <SearchBar />
+</div>
 
           {/* ── Right actions ── */}
           <div className="flex items-center gap-4">
@@ -191,7 +186,10 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border pt-3 pb-2">
             <div className="mb-3 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <SearchBar
+  placeholder="Caută..."
+  onClose={() => setMobileMenuOpen(false)}
+/>
               <input
                 type="text"
                 placeholder="Search..."
