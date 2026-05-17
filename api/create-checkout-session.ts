@@ -17,16 +17,17 @@ export default async function handler(req: Request) {
     const { items, successUrl, cancelUrl } = await req.json();
 
     const lineItems = items.map((item: any) => ({
-      price_data: {
-        currency: 'eur',
-        product_data: {
-          name: item.name,
-          images: item.image ? [item.image] : [],
-        },
-        unit_amount: Math.round(item.price * 100),
-      },
-      quantity: item.quantity,
-    }));
+  price_data: {
+    currency: 'eur',
+    product_data: {
+      name: item.name,
+      // Stripe acceptă doar URL-uri https valide
+      ...(item.image && item.image.startsWith('https://') ? { images: [item.image] } : {}),
+    },
+    unit_amount: Math.round(item.price * 100),
+  },
+  quantity: item.quantity,
+}));
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
