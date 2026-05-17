@@ -1,33 +1,33 @@
+import Stripe from 'stripe';
+
 export const config = {
   runtime: 'nodejs',
 };
 
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-04-22.dahlia',
-});
-
 export default async function handler(req: Request) {
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { 
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   try {
-    const { items, successUrl, cancelUrl } = await req.json();
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
+    const body = await req.json();
+    const { items, successUrl, cancelUrl } = body;
 
     const lineItems = items.map((item: any) => ({
-  price_data: {
-    currency: 'eur',
-    product_data: {
-      name: item.name,
-      // Stripe acceptă doar URL-uri https valide
-      ...(item.image && item.image.startsWith('https://') ? { images: [item.image] } : {}),
-    },
-    unit_amount: Math.round(item.price * 100),
-  },
-  quantity: item.quantity,
-}));
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: item.name,
+        },
+        unit_amount: Math.round(item.price * 100),
+      },
+      quantity: item.quantity,
+    }));
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -42,14 +42,9 @@ export default async function handler(req: Request) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-  console.error('Stripe error:', error);
-  return new Response(JSON.stringify({ 
-    error: error.message,
-    type: error.type,
-    code: error.code,
-  }), {
-    status: 500,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
+    return new Response(JSON.stringify({ error: error.message || 'Unknown error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
